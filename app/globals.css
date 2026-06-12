@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Clash Display", "Satoshi", sans-serif;
+  --font-body: "Satoshi", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-bg: #050507;
+  --color-panel: #0c0c0f;
+  --color-line: #1c1d23;
+  --color-ink: #ecedf2;
+  --color-muted: #8b8d98;
+  --color-accent: #8fb4ff;
+  --color-hot: #ffb054;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #050507;
+}
+
+/* slim dark scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #050507;
+}
+::-webkit-scrollbar-thumb {
+  background: #232530;
+  border-radius: 8px;
+  border: 2px solid #050507;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #343748;
+}
+
+/* ---- texto delineado (nombre gigante del hero) ---- */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(236, 237, 242, 0.32);
+}
+
+/* ---- marquee infinito ---- */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 36s linear infinite;
+}
+.marquee-track.reverse {
+  animation-direction: reverse;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* ---- punto "disponible" latiendo ---- */
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55);
+  }
+  60% {
+    box-shadow: 0 0 0 7px rgba(74, 222, 128, 0);
+  }
+}
+.pulse-dot {
+  animation: pulse-dot 2.2s ease-out infinite;
+}
+
+/* ---- sheen barrido en hover (tarjetas de proyecto) ---- */
+.sheen-host {
+  position: relative;
+  overflow: hidden;
+}
+.sheen-host .sheen {
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 80%;
+  height: 100%;
+  transform: skewX(-18deg);
+  pointer-events: none;
+  transition: left 0.8s ease;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.07),
+    transparent
+  );
+}
+.sheen-host:hover .sheen {
+  left: 150%;
+}
+
+/* ---- tarjetas de proyecto (color por proyecto via --pc) ---- */
+.pcard {
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.5s ease,
+    box-shadow 0.5s ease;
+}
+.pcard:hover {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, var(--pc) 50%, transparent);
+  box-shadow:
+    0 30px 60px -30px rgba(0, 0, 0, 0.9),
+    0 0 36px -10px color-mix(in srgb, var(--pc) 35%, transparent);
+}
+
+/* ---- indicador de scroll ---- */
+@keyframes scroll-hint {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+.scroll-hint-bar {
+  animation: scroll-hint 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* ---- subrayado animado en links ---- */
+.link-line {
+  position: relative;
+}
+.link-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-line:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}

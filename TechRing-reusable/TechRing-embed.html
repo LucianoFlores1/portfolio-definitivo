@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechRing — embebible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* =====================================================================
+     TechRing — carrusel 3D giratorio del stack tecnológico
+     Componente autocontenido y reutilizable. Pégalo en cualquier sitio
+     o incrústalo con <iframe src="TechRing-embed.html">.
+     Ajusta la orientación con las variables CSS de .techring abajo.
+     ===================================================================== */
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:#050507;}
+
+  .techring{
+    /* —— PARÁMETROS (edítalos a gusto) —— */
+    --ring-tilt: 19deg;     /* inclinación  */
+    --ring-roll: -6deg;     /* eje Z (diagonal) */
+    --ring-scale: 0.45;     /* tamaño */
+    --ring-radius: 372px;   /* radio del anillo (órbita cercana, sin superposición) */
+    --ring-lift: -58px;     /* centrado vertical */
+    --fig-width: 560px;     /* ancho de la figura central */
+    --fig-offset: 205px;    /* desplazamiento vertical de la figura */
+
+    position:relative;width:100%;height:100%;min-height:520px;
+    overflow:hidden;background:#050507;
+    font-family:"Space Grotesk",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* atmósfera */
+  .techring .atmos{position:absolute;inset:0;z-index:0;pointer-events:none;}
+  .techring .atmos::before{
+    content:"";position:absolute;left:50%;top:46%;
+    width:1200px;height:1200px;transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(60,80,140,.16), rgba(20,30,60,.05) 38%, transparent 62%);
+    filter:blur(20px);
+  }
+  .techring .atmos::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(120% 90% at 50% 42%, transparent 40%, rgba(0,0,0,.55) 78%, #000 100%);
+  }
+
+  .techring .stage{
+    position:absolute;inset:0;z-index:1;
+    display:flex;align-items:center;justify-content:center;
+    perspective:1500px;perspective-origin:50% 42%;
+  }
+  .techring .tilt{
+    position:relative;width:1px;height:1px;transform-style:preserve-3d;
+    transform:translateY(var(--ring-lift)) scale(var(--ring-scale)) rotateZ(var(--ring-roll)) rotateX(var(--ring-tilt));
+  }
+  .techring .ring{position:absolute;left:0;top:0;transform-style:preserve-3d;}
+  .techring .ring-glow{
+    position:absolute;left:50%;top:50%;width:760px;height:760px;
+    transform:translate(-50%,-50%) rotateX(90deg);
+    background:radial-gradient(circle, rgba(80,110,200,.10), transparent 60%);
+    filter:blur(30px);border-radius:50%;
+  }
+
+  /* figura central (opcional) — se mantiene de pie cancelando inclinación + eje */
+  .techring .center-figure{
+    position:absolute;left:50%;top:50%;width:var(--fig-width,560px);
+    pointer-events:none;
+    transform:translate(-50%, calc(-50% + var(--fig-offset,205px)))
+              rotateX(calc(-1 * var(--ring-tilt)))
+              rotateZ(calc(-1 * var(--ring-roll)));
+  }
+  .techring .center-figure img{
+    width:100%;display:block;
+    filter:drop-shadow(0 30px 42px rgba(0,0,0,.72)) drop-shadow(0 0 22px rgba(110,140,220,.16));
+    /* la parte inferior se funde con el fondo */
+    -webkit-mask-image:linear-gradient(to bottom, #000 54%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.12) 86%, transparent 94%);
+            mask-image:linear-gradient(to bottom, #000 54%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.12) 86%, transparent 94%);
+  }
+  .techring .center-figure .figure-glow{
+    position:absolute;left:50%;top:44%;width:150%;height:118%;
+    transform:translate(-50%,-50%);z-index:-1;
+    background:radial-gradient(ellipse 42% 48% at 50% 50%, rgba(64,96,176,.30), transparent 70%);
+    filter:blur(28px);
+  }
+
+  .techring .card{
+    position:absolute;left:50%;top:50%;width:166px;height:234px;
+    margin-left:-83px;margin-top:-117px;border-radius:28px;
+    will-change:transform,opacity,filter;
+  }
+  .techring .card-inner{
+    position:absolute;inset:0;border-radius:28px;overflow:hidden;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--c) 22%, transparent) 0%, transparent 42%),
+      linear-gradient(180deg, #161618 0%, #111113 60%, #0c0c0e 100%);
+    border:1px solid #2c2c30;
+    box-shadow:0 24px 50px -18px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.06),
+      0 0 22px -8px color-mix(in srgb, var(--c) 34%, transparent);
+    display:flex;flex-direction:column;align-items:center;
+    transition:transform .42s cubic-bezier(.22,1,.36,1),
+               box-shadow .42s ease, border-color .42s ease, filter .42s ease;
+  }
+  .techring .card-inner::before{
+    content:"";position:absolute;top:0;left:26px;right:26px;height:2px;
+    background:linear-gradient(90deg,transparent,var(--c),transparent);opacity:.85;
+  }
+  .techring .card-inner::after{
+    content:"";position:absolute;top:0;left:-120%;width:90%;height:100%;
+    transform:skewX(-18deg);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+    transition:left .7s ease;pointer-events:none;
+  }
+  /* interacción: la sección "despierta" y las tarjetas reaccionan al hover */
+  .techring .stage.awake .card-inner{ border-color:color-mix(in srgb, #2c2c30 60%, var(--c) 40%); }
+  .techring .card.hot{ z-index:999 !important; }
+  .techring .card.hot .card-inner{
+    transform:scale(1.13) translateY(-8px);
+    border-color:color-mix(in srgb, var(--c) 70%, #fff 0%);
+    box-shadow:0 40px 70px -20px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.14),
+      0 0 46px -4px color-mix(in srgb, var(--c) 75%, transparent);
+    filter:brightness(1.35) saturate(1.15);
+  }
+  .techring .card.hot .card-inner::after{ left:130%; }
+  .techring .card.hot .logo-wrap{ transform:translateY(-2px) scale(1.08); }
+  .techring .card.hot .cat{ letter-spacing:.3em; }
+  .techring .logo-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;padding:34px 20px 8px;
+    transition:transform .42s cubic-bezier(.22,1,.36,1);}
+  .techring .logo-wrap svg{width:78px;height:78px;display:block;
+    filter:drop-shadow(0 6px 16px color-mix(in srgb, var(--c) 55%, transparent));}
+  .techring .meta{width:100%;padding:0 18px 24px;text-align:center;}
+  .techring .name{font-size:20px;font-weight:600;letter-spacing:-.01em;color:#fff;}
+  .techring .cat{margin-top:7px;font-family:"JetBrains Mono",monospace;font-size:10.5px;
+    letter-spacing:.22em;text-transform:uppercase;font-weight:500;color:var(--c);filter:brightness(1.25);
+    transition:letter-spacing .42s ease;}
+
+  @media (prefers-reduced-motion: reduce){ .techring .card{transition:none;} }
+</style>
+</head>
+<body>
+  <!-- ====== El componente: una sola raíz .techring ====== -->
+  <div class="techring" id="techring">
+    <div class="atmos"></div>
+    <div class="stage">
+      <div class="tilt">
+        <div class="ring-glow"></div>
+        <!-- figura central opcional: elimina este bloque si no la quieres -->
+        <div class="center-figure">
+          <div class="figure-glow"></div>
+          <img src="assets/center-figure.png" alt="Yo con gafas de realidad virtual">
+        </div>
+        <div class="ring" data-ring></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const L = {
+    react:`<svg viewBox="-22 -20 44 40"><circle r="3.4" fill="#61DAFB"/><g fill="none" stroke="#61DAFB" stroke-width="1.6"><ellipse rx="19" ry="7"/><ellipse rx="19" ry="7" transform="rotate(60)"/><ellipse rx="19" ry="7" transform="rotate(120)"/></g></svg>`,
+    next:`<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M16 15 V33" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/><path d="M16 15 L31 35" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/><path d="M31.5 15 V27" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg>`,
+    ts:`<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="7" fill="#3178C6"/><text x="24" y="33" font-family="Space Grotesk,Arial" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">TS</text></svg>`,
+    tailwind:`<svg viewBox="0 0 54 33"><path fill="#38BDF8" d="M27 0C19.8 0 15.3 3.6 13.5 10.8 16.2 7.2 19.35 5.85 22.95 6.75 25 7.26 26.47 8.75 28.1 10.4 30.74 13.09 33.81 16.2 40.5 16.2 47.7 16.2 52.2 12.6 54 5.4 51.3 9 48.15 10.35 44.55 9.45 42.5 8.94 41.03 7.45 39.4 5.8 36.76 3.11 33.69 0 27 0ZM13.5 16.2C6.3 16.2 1.8 19.8 0 27 2.7 23.4 5.85 22.05 9.45 22.95 11.5 23.46 12.97 24.95 14.6 26.6 17.24 29.29 20.31 32.4 27 32.4 34.2 32.4 38.7 28.8 40.5 21.6 37.8 25.2 34.65 26.55 31.05 25.65 29 25.14 27.53 23.65 25.9 22 23.26 19.31 20.19 16.2 13.5 16.2Z"/></svg>`,
+    node:`<svg viewBox="0 0 48 48"><path d="M24 3 42.6 13.5 V34.5 L24 45 5.4 34.5 V13.5Z" fill="#3C873A"/><path d="M24 3 42.6 13.5 V34.5 L24 45Z" fill="#2D6B2B"/><text x="24" y="29" font-family="Space Grotesk,Arial" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="-.5">node</text></svg>`,
+    express:`<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="9" fill="#1b1b1f" stroke="#3a3a40" stroke-width="1.4"/><text x="24" y="31" font-family="JetBrains Mono,monospace" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">ex</text></svg>`,
+    mysql:`<svg viewBox="0 0 48 48"><g fill="none" stroke="#00758F" stroke-width="2.6"><ellipse cx="24" cy="13" rx="14" ry="5.4" fill="#00758F"/><path d="M10 13 V35 a14 5.4 0 0 0 28 0 V13"/><path d="M10 24 a14 5.4 0 0 0 28 0"/></g><path d="M34 35c2 3 4 3 6 5" stroke="#F29111" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>`,
+    supabase:`<svg viewBox="0 0 48 48"><defs><linearGradient id="tr-sb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ECF8E"/><stop offset="1" stop-color="#249a64"/></linearGradient></defs><path d="M26 3 L11 23 a1.6 1.6 0 0 0 1.3 2.6 H22 V44 a1 1 0 0 0 1.8 .6 L39 25 a1.6 1.6 0 0 0-1.3-2.6 H28 V4 a1 1 0 0 0-2-1Z" fill="url(#tr-sb)"/></svg>`,
+    firebase:`<svg viewBox="0 0 48 48"><path d="M8 38 L18 6 23 15 16 27Z" fill="#F57C00"/><path d="M8 38 L24 11 30 21 22 30Z" fill="#FFA000"/><path d="M8 38 L33 17 40 38 24 45Z" fill="#FFCA28"/><path d="M8 38 L40 38 24 45Z" fill="#F57C00" opacity=".45"/></svg>`,
+    python:`<svg viewBox="0 0 48 48"><path fill="#3776AB" d="M23.6 5c-7.4 0-7 3.2-7 3.2v3.3h7.1v1H13.5S8.7 11 8.7 18.4 12.9 25.5 12.9 25.5h2.5v-3.5s-.13-4.3 4.2-4.3h7s4-.06 4-3.9V8.9S31.2 5 23.6 5Zm-3.9 2.2a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6Z"/><path fill="#FFD43B" d="M24.4 43c7.4 0 7-3.2 7-3.2v-3.3h-7.1v-1h10.2s4.8.5 4.8-6.9-4.2-7.1-4.2-7.1h-2.5v3.5s.13 4.3-4.2 4.3h-7s-4 .06-4 3.9v6.9S16.8 43 24.4 43Zm3.9-2.2a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Z"/></svg>`,
+    git:`<svg viewBox="0 0 48 48"><g transform="rotate(45 24 24)"><rect x="9" y="9" width="30" height="30" rx="5" fill="#F05032"/></g><g fill="#F05032" stroke="#fff" stroke-width="2.4"><line x1="20" y1="31" x2="20" y2="17"/><line x1="20" y1="24" x2="29" y2="16"/><circle cx="20" cy="32.5" r="2.6"/><circle cx="20" cy="15.5" r="2.6"/><circle cx="30" cy="14" r="2.6"/></g></svg>`,
+    vercel:`<svg viewBox="0 0 48 48"><path d="M24 7 L43 41 H5 Z" fill="#fff"/></svg>`,
+  };
+
+  // —— Stack (edítalo libremente) ——
+  const TECH = [
+    {name:"React",       cat:"Frontend", color:"#61DAFB", logo:L.react},
+    {name:"Next.js",     cat:"Frontend", color:"#ededed", logo:L.next},
+    {name:"TypeScript",  cat:"Frontend", color:"#3178C6", logo:L.ts},
+    {name:"TailwindCSS", cat:"Frontend", color:"#38BDF8", logo:L.tailwind},
+    {name:"Node.js",     cat:"Backend",  color:"#3C873A", logo:L.node},
+    {name:"Express",     cat:"Backend",  color:"#9aa0a6", logo:L.express},
+    {name:"MySQL",       cat:"Database", color:"#009bb5", logo:L.mysql},
+    {name:"Supabase",    cat:"Database", color:"#3ECF8E", logo:L.supabase},
+    {name:"Firebase",    cat:"Database", color:"#FFA000", logo:L.firebase},
+    {name:"Python",      cat:"Data",     color:"#FFD43B", logo:L.python},
+    {name:"Git / GitHub",cat:"DevOps",   color:"#F05032", logo:L.git},
+    {name:"Vercel",      cat:"DevOps",   color:"#ffffff", logo:L.vercel},
+  ];
+
+  const SPEED = 15;        // deg / s (auto-rotación, siempre activa)
+
+  document.querySelectorAll(".techring").forEach((root)=>{
+    const ring = root.querySelector("[data-ring]");
+    const cs = getComputedStyle(root);
+    const R = parseFloat(cs.getPropertyValue("--ring-radius")) || 408;
+    const N = TECH.length, step = 360/N;
+    const cards = TECH.map((t)=>{
+      const el = document.createElement("div");
+      el.className = "card"; el.style.setProperty("--c", t.color);
+      el.innerHTML = `<div class="card-inner"><div class="logo-wrap">${t.logo}</div>`+
+        `<div class="meta"><div class="name">${t.name}</div><div class="cat">${t.cat}</div></div></div>`;
+      ring.appendChild(el); return el;
+    });
+    const stage = root.querySelector(".stage");
+    let rot = 0, last = performance.now();
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function paint(){
+      for(let i=0;i<N;i++){
+        const theta = rot + i*step;
+        const t = (Math.cos(theta*Math.PI/180)+1)/2;
+        const el = cards[i];
+        el.style.transform = `rotateY(${theta}deg) translateZ(${R}px)`;
+        el.style.opacity = (0.6+0.4*t).toFixed(3);
+        el.style.filter = `brightness(${(0.62+0.5*t).toFixed(3)}) blur(${((1-t)*1.2).toFixed(2)}px)`;
+        el.style.zIndex = Math.round(t*100);
+        el.style.pointerEvents = t > 0.5 ? "auto" : "none";
+      }
+    }
+    function frame(now){
+      const dt = Math.min((now-last)/1000,0.05); last = now;
+      rot = (rot + SPEED*dt) % 360; paint(); requestAnimationFrame(frame);   // gira siempre
+    }
+    paint();
+    if(!reduce) requestAnimationFrame(frame);
+
+    // hover: resalta la tarjeta sin detener el giro
+    if(stage){
+      stage.addEventListener("pointerenter", ()=>{ stage.classList.add("awake"); });
+      stage.addEventListener("pointerleave", ()=>{ stage.classList.remove("awake"); cards.forEach(c=>c.classList.remove("hot")); });
+    }
+    ring.addEventListener("pointerover", (e)=>{
+      const card = e.target.closest(".card"); if(!card) return;
+      cards.forEach(c=>c.classList.toggle("hot", c===card));
+    });
+    ring.addEventListener("pointerout", (e)=>{
+      const card = e.target.closest(".card");
+      if(card && !card.contains(e.relatedTarget)) card.classList.remove("hot");
+    });
+  });
+})();
+</script>
+</body>
+</html>
