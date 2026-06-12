@@ -218,12 +218,12 @@ export default function TechRing({
               }}
             >
               <div
-                className="absolute left-1/2 top-[44%] -z-10 -translate-x-1/2 -translate-y-1/2 blur-2xl"
+                className="absolute left-1/2 top-[44%] -z-10 -translate-x-1/2 -translate-y-1/2 blur-3xl"
                 style={{
-                  width: "150%",
-                  height: "118%",
+                  width: "170%",
+                  height: "130%",
                   background:
-                    "radial-gradient(ellipse 42% 48% at 50% 50%, rgba(64,96,176,.30), transparent 70%)",
+                    "radial-gradient(ellipse 40% 46% at 50% 50%, rgba(64,96,176,.20), rgba(64,96,176,.07) 55%, transparent 78%)",
                 }}
               />
               <img
@@ -232,11 +232,11 @@ export default function TechRing({
                 className="block w-full"
                 style={{
                   filter:
-                    "drop-shadow(0 30px 42px rgba(0,0,0,.72)) drop-shadow(0 0 22px rgba(110,140,220,.16))",
+                    "drop-shadow(0 30px 42px rgba(0,0,0,.72)) drop-shadow(0 0 30px rgba(110,140,220,.10))",
                   WebkitMaskImage:
-                    "linear-gradient(to bottom, #000 54%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.12) 86%, transparent 94%)",
+                    "linear-gradient(to bottom, #000 46%, rgba(0,0,0,.6) 62%, rgba(0,0,0,.28) 76%, rgba(0,0,0,.08) 88%, transparent 96%)",
                   maskImage:
-                    "linear-gradient(to bottom, #000 54%, rgba(0,0,0,.45) 74%, rgba(0,0,0,.12) 86%, transparent 94%)",
+                    "linear-gradient(to bottom, #000 46%, rgba(0,0,0,.6) 62%, rgba(0,0,0,.28) 76%, rgba(0,0,0,.08) 88%, transparent 96%)",
                 }}
               />
             </div>
