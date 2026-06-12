@@ -59,7 +59,7 @@ export default function Hero({ started }: { started: boolean }) {
           roll={-6}
           radius={408}
           scale={ringScale}
-          centerImage="/center-figure.png"
+          centerImage="/center-figure.webp"
         />
       </motion.div>
 

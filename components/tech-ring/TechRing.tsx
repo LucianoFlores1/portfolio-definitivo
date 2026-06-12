@@ -86,7 +86,7 @@ export default function TechRing({
   className = "",
 }: TechRingProps) {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const rotRef = useRef(0);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const ringRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const N = items.length;
@@ -94,43 +94,55 @@ export default function TechRing({
 
   useEffect(() => {
     const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const spinning = !reduce && speed !== 0;
 
-    let raf = 0;
-    let last = performance.now();
+    // La rotación vive en una animación CSS compuesta (.tr-spin) que corre en
+    // GPU. Acá solo se sincroniza la señal de profundidad (opacity / z-index /
+    // pointer-events) a baja frecuencia; la transición CSS suaviza los pasos.
+    let start = performance.now();
+    let pausedAt = 0;
+    let paused = false;
 
-    const update = () => {
+    const tick = () => {
+      const rot = spinning
+        ? (((performance.now() - start) / 1000) * speed) % 360
+        : 0;
       for (let i = 0; i < N; i++) {
         const el = cardRefs.current[i];
         if (!el) continue;
-        const theta = rotRef.current + i * step;
+        const theta = rot + i * step;
         const t = (Math.cos((theta * Math.PI) / 180) + 1) / 2; // 1 = front, 0 = back
-        el.style.transform = `rotateY(${theta}deg) translateZ(${radius}px)`;
-        el.style.opacity = (0.6 + 0.4 * t).toFixed(3);
-        el.style.filter = `brightness(${(0.62 + 0.5 * t).toFixed(3)}) blur(${((1 - t) * 1.2).toFixed(2)}px)`;
+        el.style.opacity = (0.35 + 0.65 * t).toFixed(3);
         el.style.zIndex = String(Math.round(t * 100));
         el.style.pointerEvents = t > 0.5 ? "auto" : "none"; // solo las del frente
       }
     };
 
-    const frame = (now: number) => {
-      const dt = Math.min((now - last) / 1000, 0.05);
-      last = now;
-      rotRef.current = (rotRef.current + speed * dt) % 360; // gira siempre
-      update();
-      raf = requestAnimationFrame(frame);
-    };
+    tick();
+    const interval = spinning
+      ? window.setInterval(() => {
+          if (!paused) tick();
+        }, 150)
+      : 0;
 
-    update(); // paint a full ring immediately (correct first frame / SSR hydration)
-    if (!reduce && speed !== 0) raf = requestAnimationFrame(frame);
+    // Congela animación CSS + tick cuando el hero sale del viewport, y
+    // compensa el reloj al volver para que opacidad y rotación sigan en fase.
+    const root = rootRef.current;
+    const io = new IntersectionObserver(([entry]) => {
+      const off = !entry.isIntersecting;
+      if (off === paused) return;
+      paused = off;
+      root?.classList.toggle("tr-paused", off);
+      if (off) pausedAt = performance.now();
+      else start += performance.now() - pausedAt;
+    });
+    if (root) io.observe(root);
 
-    // —— interacción: hover de sección + tarjetas ——
+    // —— interacción: hover de tarjetas ——
     const stage = stageRef.current;
     const ring = ringRef.current;
-    const onEnter = () => { stage?.classList.add("awake"); };
     const onLeave = () => {
-      stage?.classList.remove("awake");
       cardRefs.current.forEach((c) => c?.classList.remove("hot"));
     };
     const onOver = (e: PointerEvent) => {
@@ -142,28 +154,35 @@ export default function TechRing({
       const card = (e.target as HTMLElement).closest(".tr-card") as HTMLElement | null;
       if (card && !card.contains(e.relatedTarget as Node)) card.classList.remove("hot");
     };
-    stage?.addEventListener("pointerenter", onEnter);
     stage?.addEventListener("pointerleave", onLeave);
     ring?.addEventListener("pointerover", onOver);
     ring?.addEventListener("pointerout", onOut);
 
     return () => {
-      cancelAnimationFrame(raf);
-      stage?.removeEventListener("pointerenter", onEnter);
+      if (interval) clearInterval(interval);
+      io.disconnect();
       stage?.removeEventListener("pointerleave", onLeave);
       ring?.removeEventListener("pointerover", onOver);
       ring?.removeEventListener("pointerout", onOut);
     };
-  }, [N, step, radius, speed]);
+  }, [N, step, speed]);
 
   return (
     <div
+      ref={rootRef}
       data-techring
       className={`relative h-full w-full overflow-hidden ${className}`}
       style={{ perspective: "1500px", perspectiveOrigin: "50% 42%" }}
     >
-      {/* hover interactions (scoped) */}
+      {/* spin + hover interactions (scoped) */}
       <style>{`
+        @keyframes tr-spin{ from{ transform:rotateY(0deg); } to{ transform:rotateY(360deg); } }
+        [data-techring] .tr-spin{ animation:tr-spin 24s linear infinite; will-change:transform; }
+        [data-techring].tr-paused .tr-spin{ animation-play-state:paused; }
+        @media (prefers-reduced-motion: reduce){
+          [data-techring] .tr-spin{ animation:none; }
+        }
+        [data-techring] .tr-card{ transition:opacity .3s linear; }
         [data-techring] .tr-card-inner{
           transition:transform .42s cubic-bezier(.22,1,.36,1),
                      box-shadow .42s ease, border-color .42s ease, filter .42s ease;
@@ -175,7 +194,6 @@ export default function TechRing({
         }
         [data-techring] .tr-logo{ transition:transform .42s cubic-bezier(.22,1,.36,1); }
         [data-techring] .tr-cat{ transition:letter-spacing .42s ease; }
-        [data-techring] .awake .tr-card-inner{ filter:brightness(1.04); }
         [data-techring] .tr-card.hot{ z-index:999 !important; }
         [data-techring] .tr-card.hot .tr-card-inner{
           transform:scale(1.13) translateY(-8px);
@@ -187,7 +205,7 @@ export default function TechRing({
       `}</style>
       {/* atmospheric glow */}
       <div
-        className="pointer-events-none absolute left-1/2 top-[46%] h-[1200px] w-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+        className="pointer-events-none absolute left-1/2 top-[46%] h-[1200px] w-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
           background:
             "radial-gradient(circle, rgba(60,80,140,.16), rgba(20,30,60,.05) 38%, transparent 62%)",
@@ -218,17 +236,19 @@ export default function TechRing({
               }}
             >
               <div
-                className="absolute left-1/2 top-[44%] -z-10 -translate-x-1/2 -translate-y-1/2 blur-3xl"
+                className="absolute left-1/2 top-[44%] -z-10 -translate-x-1/2 -translate-y-1/2"
                 style={{
                   width: "170%",
                   height: "130%",
                   background:
-                    "radial-gradient(ellipse 40% 46% at 50% 50%, rgba(64,96,176,.20), rgba(64,96,176,.07) 55%, transparent 78%)",
+                    "radial-gradient(ellipse 48% 54% at 50% 50%, rgba(64,96,176,.18), rgba(64,96,176,.06) 55%, transparent 80%)",
                 }}
               />
               <img
                 src={centerImage}
                 alt=""
+                fetchPriority="high"
+                decoding="async"
                 className="block w-full"
                 style={{
                   filter:
@@ -241,23 +261,44 @@ export default function TechRing({
               />
             </div>
           )}
-          {items.map((tech, i) => (
-            <div
-              key={`${tech.name}-${i}`}
-              ref={(el) => {
-                cardRefs.current[i] = el;
-              }}
-              className="tr-card absolute left-1/2 top-1/2 will-change-transform [backface-visibility:visible]"
-              style={{
-                width: cardWidth,
-                height: cardHeight,
-                marginLeft: -cardWidth / 2,
-                marginTop: -cardHeight / 2,
-              }}
-            >
-              <TechCard tech={tech} />
-            </div>
-          ))}
+          {/* las tarjetas viven en un spinner con animación CSS: un solo
+              transform compuesto en GPU en vez de 12 estilos por frame */}
+          <div
+            className="tr-spin absolute left-0 top-0 h-px w-px [transform-style:preserve-3d]"
+            style={
+              speed !== 0
+                ? {
+                    animationDuration: `${360 / Math.abs(speed)}s`,
+                    animationDirection: speed < 0 ? "reverse" : "normal",
+                  }
+                : { animation: "none" }
+            }
+          >
+            {items.map((tech, i) => {
+              const t0 = (Math.cos((i * step * Math.PI) / 180) + 1) / 2;
+              return (
+                <div
+                  key={`${tech.name}-${i}`}
+                  ref={(el) => {
+                    cardRefs.current[i] = el;
+                  }}
+                  className="tr-card absolute left-1/2 top-1/2 [backface-visibility:visible]"
+                  style={{
+                    width: cardWidth,
+                    height: cardHeight,
+                    marginLeft: -cardWidth / 2,
+                    marginTop: -cardHeight / 2,
+                    transform: `rotateY(${i * step}deg) translateZ(${radius}px)`,
+                    opacity: 0.35 + 0.65 * t0,
+                    zIndex: Math.round(t0 * 100),
+                    pointerEvents: t0 > 0.5 ? "auto" : "none",
+                  }}
+                >
+                  <TechCard tech={tech} />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

@@ -27,7 +27,7 @@ export default function Nav({ started }: { started: boolean }) {
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
         scrolled
-          ? "border-b border-line bg-bg/80 backdrop-blur-md"
+          ? "border-b border-line bg-bg/90 md:bg-bg/80 md:backdrop-blur-md"
           : "border-b border-transparent"
       }`}
     >

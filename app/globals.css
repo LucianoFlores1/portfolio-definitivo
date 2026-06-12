@@ -62,6 +62,7 @@ body {
   display: flex;
   width: max-content;
   animation: marquee 36s linear infinite;
+  will-change: transform;
 }
 .marquee-track.reverse {
   animation-direction: reverse;
