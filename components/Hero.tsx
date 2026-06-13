@@ -1,9 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import TechRing from "./tech-ring/TechRing";
 
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
+
 export default function Hero({ started }: { started: boolean }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const nameRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const gsapCtxRef = useRef<ReturnType<typeof gsap.context> | null>(null);
   const [ringScale, setRingScale] = useState(0.73);
 
   useEffect(() => {
@@ -16,10 +25,71 @@ export default function Hero({ started }: { started: boolean }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // GSAP scroll parallax — starts after entrance animations finish
+  useEffect(() => {
+    if (!started) return;
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const timer = setTimeout(() => {
+      const ctx = gsap.context(() => {
+        // name text parallaxes up faster than the section scrolls
+        gsap.to(nameRef.current, {
+          yPercent: -50,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
+
+        // ring fades and scales down
+        gsap.to(ringRef.current, {
+          scale: 0.88,
+          opacity: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "20% top",
+            end: "75% top",
+            scrub: true,
+          },
+        });
+
+        // overlay fades
+        gsap.to(overlayRef.current, {
+          opacity: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "35% top",
+            end: "70% top",
+            scrub: true,
+          },
+        });
+      }, section);
+
+      gsapCtxRef.current = ctx;
+    }, 2200);
+
+    return () => {
+      clearTimeout(timer);
+      gsapCtxRef.current?.revert();
+    };
+  }, [started]);
+
   return (
-    <section className={`relative h-screen h-[100svh] overflow-hidden ${started ? "started" : ""}`}>
+    <section
+      ref={sectionRef}
+      className={`relative h-screen h-[100svh] overflow-hidden ${started ? "started" : ""}`}
+    >
       {/* nombre gigante — capa trasera */}
-      <div className="absolute inset-x-0 top-[13%] z-0 select-none text-center md:top-[11%]">
+      <div
+        ref={nameRef}
+        className="absolute inset-x-0 top-[13%] z-0 select-none text-center md:top-[11%]"
+      >
         <div className="overflow-hidden">
           <div className="hero-slide hero-slide-1 font-display text-[clamp(64px,13vw,185px)] font-bold leading-[0.92] tracking-[-0.03em]">
             LUCIANO
@@ -33,7 +103,7 @@ export default function Hero({ started }: { started: boolean }) {
       </div>
 
       {/* anillo 3D — capa media */}
-      <div className="hero-ring absolute inset-0 z-10">
+      <div ref={ringRef} className="hero-ring absolute inset-0 z-10">
         <TechRing
           tilt={20}
           roll={-6}
@@ -44,8 +114,10 @@ export default function Hero({ started }: { started: boolean }) {
       </div>
 
       {/* overlay de informacion — capa frontal */}
-      <div className="hero-overlay pointer-events-none absolute inset-0 z-20">
-        {/* texto vertical lateral */}
+      <div
+        ref={overlayRef}
+        className="hero-overlay pointer-events-none absolute inset-0 z-20"
+      >
         <p className="absolute left-6 top-1/2 hidden -translate-y-1/2 rotate-180 font-mono text-[10px] uppercase tracking-[0.4em] text-muted [writing-mode:vertical-rl] lg:block">
           Full Stack Developer — Salta, Argentina
         </p>
@@ -53,7 +125,6 @@ export default function Hero({ started }: { started: boolean }) {
           React · Node.js · TypeScript · Python
         </p>
 
-        {/* franja inferior */}
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-6 px-6 pb-8 md:flex-row md:items-end md:justify-between md:px-10">
           <div className="max-w-sm">
             <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-accent">
@@ -65,7 +136,6 @@ export default function Hero({ started }: { started: boolean }) {
             </p>
           </div>
 
-          {/* indicador de scroll */}
           <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 md:flex">
             <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-muted">
               Scroll

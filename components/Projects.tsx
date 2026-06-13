@@ -3,6 +3,7 @@ import Reveal from "./Reveal";
 import SectionHead from "./SectionHead";
 
 type Project = {
+  id: string;
   title: string;
   badge?: string;
   desc: string;
@@ -14,6 +15,7 @@ type Project = {
 
 const PROJECTS: Project[] = [
   {
+    id: "miamigofiel",
     title: "miAmigoFiel",
     badge: "2° lugar · Hackathon El Milagro 2025",
     desc: "Plataforma colaborativa para reportar y encontrar mascotas perdidas con geolocalización en tiempo real, búsqueda geolocalizada y notificaciones. Desarrollada en equipo bajo metodología ágil.",
@@ -23,6 +25,7 @@ const PROJECTS: Project[] = [
     featured: true,
   },
   {
+    id: "eziptv",
     title: "EzIPTV",
     badge: "Open Source",
     desc: "PWA instalable para reproducción IPTV con streaming adaptativo HLS, almacenamiento offline con IndexedDB y cifrado AES-GCM de credenciales vía Web Crypto API.",
@@ -32,6 +35,7 @@ const PROJECTS: Project[] = [
     featured: true,
   },
   {
+    id: "portal-empleos",
     title: "Portal de Empleos Salta",
     desc: "Plataforma de gestión de ofertas laborales con panel admin seguro (Google Auth), SEO “AI-First” compatible con Perplexity y ChatGPT, Schema.org y prerenderizado en Edge.",
     impact: "Producto real en producción",
@@ -39,6 +43,7 @@ const PROJECTS: Project[] = [
     color: "#FFA000",
   },
   {
+    id: "gestion-municipal",
     title: "Gestión Municipal",
     desc: "Dashboards internos y automatización de procesos administrativos municipales con n8n: digitalización de flujos antes manuales.",
     impact: "−40% en tiempos operativos manuales",
@@ -46,6 +51,7 @@ const PROJECTS: Project[] = [
     color: "#ffb054",
   },
   {
+    id: "drive-scraper",
     title: "Drive Scraper + JSON Comparator",
     desc: "Script Python para scraping automatizado de carpetas de Google Drive y comparación estructural de JSONs: detección de diferencias y anomalías entre versiones.",
     impact: "Auditoría de datos automatizada",
@@ -53,6 +59,7 @@ const PROJECTS: Project[] = [
     color: "#FFD43B",
   },
   {
+    id: "inventario-pymes",
     title: "Inventario para PyMEs",
     desc: "Sistema web de gestión de inventario y técnicos para pequeñas y medianas empresas, con API REST y frontend modular orientado al negocio.",
     impact: "Arquitectura orientada al negocio",
@@ -65,6 +72,7 @@ function Card({ project, index }: { project: Project; index: number }) {
   const c = project.color;
   return (
     <article
+      id={`proyecto-${project.id}`}
       className={`pcard sheen-host flex h-full flex-col rounded-[28px] border border-line bg-panel p-8 md:p-10 ${
         project.featured ? "md:col-span-1 lg:p-12" : ""
       }`}

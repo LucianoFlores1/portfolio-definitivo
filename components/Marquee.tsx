@@ -1,3 +1,11 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
+
 const ROW_A = [
   "React",
   "Next.js",
@@ -45,10 +53,43 @@ function Row({ items, reverse }: { items: string[]; reverse?: boolean }) {
   );
 }
 
-/** Doble cinta infinita del stack, una sólida y una delineada en sentido opuesto. */
 export default function Marquee() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const ctx = gsap.context(() => {
+      // scroll-driven horizontal push: marquee appears to accelerate
+      gsap.to(el.querySelectorAll(".marquee-track:not(.reverse)"), {
+        x: -180,
+        ease: "none",
+        scrollTrigger: {
+          trigger: el,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 0.5,
+        },
+      });
+      gsap.to(el.querySelectorAll(".marquee-track.reverse"), {
+        x: 180,
+        ease: "none",
+        scrollTrigger: {
+          trigger: el,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 0.5,
+        },
+      });
+    }, el);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="space-y-4 border-y border-line py-10">
+    <div ref={ref} className="space-y-4 border-y border-line py-10">
       <Row items={ROW_A} />
       <Row items={ROW_B} reverse />
     </div>

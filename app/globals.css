@@ -166,17 +166,10 @@ body {
   transform-origin: left;
 }
 
-/* ---- reveal (scroll-triggered entrance) ---- */
+/* ---- reveal (initial hidden state — GSAP ScrollTrigger animates to visible) ---- */
 .reveal {
   opacity: 0;
   transform: translateY(32px);
-  transition:
-    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.reveal.revealed {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 /* ---- intro (mount animations + exit transitions) ---- */

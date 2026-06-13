@@ -1,74 +1,47 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import gsap from "gsap";
 import { TechLogos } from "./tech-logos";
 
-/* ------------------------------------------------------------------ */
-/*  Types + default data                                              */
-/* ------------------------------------------------------------------ */
-
 export type Tech = {
-  /** Display name shown under the logo */
   name: string;
-  /** Category label (Frontend / Backend / Database / Data / DevOps …) */
   category: string;
-  /** Brand color — drives the glow, accent line and category text */
   color: string;
-  /** Key into `TechLogos` (see tech-logos.tsx) */
   logo: string;
+  project?: string;
 };
 
-/** Curated 12-tech core stack. Swap freely or pass your own via the `items` prop. */
 export const DEFAULT_STACK: Tech[] = [
-  { name: "React", category: "Frontend", color: "#61DAFB", logo: "react" },
-  { name: "Next.js", category: "Frontend", color: "#ededed", logo: "next" },
-  { name: "TypeScript", category: "Frontend", color: "#3178C6", logo: "typescript" },
-  { name: "TailwindCSS", category: "Frontend", color: "#38BDF8", logo: "tailwind" },
-  { name: "Node.js", category: "Backend", color: "#3C873A", logo: "node" },
-  { name: "Express", category: "Backend", color: "#9aa0a6", logo: "express" },
-  { name: "MySQL", category: "Database", color: "#009bb5", logo: "mysql" },
-  { name: "Supabase", category: "Database", color: "#3ECF8E", logo: "supabase" },
-  { name: "Firebase", category: "Database", color: "#FFA000", logo: "firebase" },
-  { name: "Python", category: "Data", color: "#FFD43B", logo: "python" },
-  { name: "Git / GitHub", category: "DevOps", color: "#F05032", logo: "git" },
-  { name: "Vercel", category: "DevOps", color: "#ffffff", logo: "vercel" },
+  { name: "React", category: "Frontend", color: "#61DAFB", logo: "react", project: "miamigofiel" },
+  { name: "Next.js", category: "Frontend", color: "#ededed", logo: "next", project: "eziptv" },
+  { name: "TypeScript", category: "Frontend", color: "#3178C6", logo: "typescript", project: "portal-empleos" },
+  { name: "TailwindCSS", category: "Frontend", color: "#38BDF8", logo: "tailwind", project: "eziptv" },
+  { name: "Node.js", category: "Backend", color: "#3C873A", logo: "node", project: "inventario-pymes" },
+  { name: "Express", category: "Backend", color: "#9aa0a6", logo: "express", project: "portal-empleos" },
+  { name: "MySQL", category: "Database", color: "#009bb5", logo: "mysql", project: "inventario-pymes" },
+  { name: "Supabase", category: "Database", color: "#3ECF8E", logo: "supabase", project: "miamigofiel" },
+  { name: "Firebase", category: "Database", color: "#FFA000", logo: "firebase", project: "portal-empleos" },
+  { name: "Python", category: "Data", color: "#FFD43B", logo: "python", project: "drive-scraper" },
+  { name: "Git / GitHub", category: "DevOps", color: "#F05032", logo: "git", project: "miamigofiel" },
+  { name: "Vercel", category: "DevOps", color: "#ffffff", logo: "vercel", project: "portal-empleos" },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Props                                                             */
-/* ------------------------------------------------------------------ */
-
 export type TechRingProps = {
-  /** Cards to render around the ring. Defaults to `DEFAULT_STACK`. */
   items?: Tech[];
-  /** Ring radius in px (bigger = wider ring / more spacing). Default 408. */
   radius?: number;
-  /** View tilt in degrees. Default 19. */
   tilt?: number;
-  /** Roll / axis rotation (rotateZ) in degrees — banks the ring diagonally. Default -6. */
   roll?: number;
-  /** Uniform size multiplier. Default 0.45. */
   scale?: number;
-  /** Rotation speed in degrees / second. Set 0 to freeze. Default 15. */
   speed?: number;
-  /** Card width / height in px. Default 188 × 264. */
   cardWidth?: number;
   cardHeight?: number;
-  /** Vertical nudge of the whole ring in px (keeps it visually centered). Default -58. */
   lift?: number;
-  /** Optional image placed at the centre of the ring (e.g. a portrait cut-out, transparent PNG). */
   centerImage?: string;
-  /** Width of the centre figure in px (local, before scale). Default 560. */
   centerWidth?: number;
-  /** Vertical offset of the centre figure in px (local). Default 205. */
   centerOffset?: number;
-  /** Extra classes on the outer stage. */
   className?: string;
 };
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                         */
-/* ------------------------------------------------------------------ */
 
 export default function TechRing({
   items = DEFAULT_STACK,
@@ -87,102 +60,205 @@ export default function TechRing({
 }: TechRingProps) {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const ringRef = useRef<HTMLDivElement | null>(null);
+  const spinnerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const N = items.length;
   const step = 360 / N;
 
   useEffect(() => {
+    const spinner = spinnerRef.current;
+    const root = rootRef.current;
+    if (!spinner || !root) return;
+
     const reduce =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     const spinning = !reduce && speed !== 0;
 
-    // La rotación vive en una animación CSS compuesta (.tr-spin) que corre en
-    // GPU. Acá solo se sincroniza la señal de profundidad (opacity / z-index /
-    // pointer-events) a baja frecuencia; la transición CSS suaviza los pasos.
-    let start = performance.now();
-    let pausedAt = 0;
-    let paused = false;
+    const rot = { y: 0 };
+    let isDragging = false;
+    let dragTotal = 0;
+    let velocity = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let downTarget: HTMLElement | null = null;
+    let autoTween: gsap.core.Tween | null = null;
+    let momentumTween: gsap.core.Tween | null = null;
 
-    const tick = () => {
-      const rot = spinning
-        ? (((performance.now() - start) / 1000) * speed) % 360
-        : 0;
+    const updateRing = () => {
+      spinner.style.transform = `rotateY(${rot.y}deg)`;
       for (let i = 0; i < N; i++) {
         const el = cardRefs.current[i];
         if (!el) continue;
-        const theta = rot + i * step;
-        const t = (Math.cos((theta * Math.PI) / 180) + 1) / 2; // 1 = front, 0 = back
+        const theta = rot.y + i * step;
+        const t = (Math.cos((theta * Math.PI) / 180) + 1) / 2;
         el.style.opacity = (0.35 + 0.65 * t).toFixed(3);
         el.style.zIndex = String(Math.round(t * 100));
-        el.style.pointerEvents = t > 0.5 ? "auto" : "none"; // solo las del frente
+        el.style.pointerEvents = t > 0.5 ? "auto" : "none";
       }
     };
 
-    tick();
-    const interval = spinning
-      ? window.setInterval(() => {
-          if (!paused) tick();
-        }, 150)
-      : 0;
+    const startAuto = () => {
+      if (!spinning) return;
+      autoTween = gsap.to(rot, {
+        y: `+=${speed > 0 ? 360 : -360}`,
+        duration: 360 / Math.abs(speed),
+        ease: "none",
+        repeat: -1,
+        onUpdate: updateRing,
+      });
+    };
 
-    // Congela animación CSS + tick cuando el hero sale del viewport, y
-    // compensa el reloj al volver para que opacidad y rotación sigan en fase.
-    const root = rootRef.current;
+    updateRing();
+    startAuto();
+
+    // pause off-screen
     const io = new IntersectionObserver(([entry]) => {
-      const off = !entry.isIntersecting;
-      if (off === paused) return;
-      paused = off;
-      root?.classList.toggle("tr-paused", off);
-      if (off) pausedAt = performance.now();
-      else start += performance.now() - pausedAt;
+      if (entry.isIntersecting) autoTween?.resume();
+      else autoTween?.pause();
     });
-    if (root) io.observe(root);
+    io.observe(root);
 
-    // —— interacción: hover de tarjetas ——
+    // --- drag / swipe interaction ---
+    const onDown = (e: PointerEvent) => {
+      isDragging = true;
+      dragTotal = 0;
+      lastX = e.clientX;
+      lastTime = Date.now();
+      velocity = 0;
+      downTarget = e.target as HTMLElement;
+      autoTween?.pause();
+      momentumTween?.kill();
+      root.style.cursor = "grabbing";
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (!isDragging) return;
+      const now = Date.now();
+      const dx = e.clientX - lastX;
+      const dt = Math.max(now - lastTime, 1);
+      velocity = dx / dt;
+      dragTotal += Math.abs(dx);
+      lastX = e.clientX;
+      lastTime = now;
+      rot.y += dx * 0.4;
+      updateRing();
+    };
+
+    const onUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      root.style.cursor = "grab";
+
+      // click (not drag) → navigate to project
+      if (dragTotal < 5 && downTarget) {
+        const card = downTarget.closest(".tr-card");
+        if (card) {
+          const idx = cardRefs.current.indexOf(card as HTMLDivElement);
+          if (idx >= 0 && items[idx]?.project) {
+            const target = document.getElementById(
+              `proyecto-${items[idx].project}`,
+            );
+            if (target) {
+              target.scrollIntoView({ behavior: "smooth", block: "center" });
+              gsap.fromTo(
+                target,
+                {
+                  boxShadow: `0 0 0 2px ${items[idx].color}, 0 0 28px ${items[idx].color}44`,
+                },
+                {
+                  boxShadow:
+                    "0 0 0 0px transparent, 0 0 0px transparent",
+                  duration: 2,
+                  ease: "power2.out",
+                  delay: 0.5,
+                },
+              );
+            }
+          }
+        }
+        startAuto();
+        downTarget = null;
+        return;
+      }
+      downTarget = null;
+
+      // momentum
+      const dist = velocity * 180;
+      if (Math.abs(dist) > 2) {
+        momentumTween = gsap.to(rot, {
+          y: `+=${dist}`,
+          duration: Math.min(Math.abs(velocity) * 1.5, 1.5),
+          ease: "power3.out",
+          onUpdate: updateRing,
+          onComplete: () => {
+            rot.y = ((rot.y % 360) + 360) % 360;
+            autoTween?.kill();
+            startAuto();
+          },
+        });
+      } else {
+        autoTween?.kill();
+        startAuto();
+      }
+    };
+
+    root.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+
+    // hover effects
     const stage = stageRef.current;
-    const ring = ringRef.current;
     const onLeave = () => {
       cardRefs.current.forEach((c) => c?.classList.remove("hot"));
     };
     const onOver = (e: PointerEvent) => {
-      const card = (e.target as HTMLElement).closest(".tr-card") as HTMLElement | null;
+      if (isDragging) return;
+      const card = (e.target as HTMLElement).closest(
+        ".tr-card",
+      ) as HTMLElement | null;
       if (!card) return;
       cardRefs.current.forEach((c) => c?.classList.toggle("hot", c === card));
     };
     const onOut = (e: PointerEvent) => {
-      const card = (e.target as HTMLElement).closest(".tr-card") as HTMLElement | null;
-      if (card && !card.contains(e.relatedTarget as Node)) card.classList.remove("hot");
+      const card = (e.target as HTMLElement).closest(
+        ".tr-card",
+      ) as HTMLElement | null;
+      if (card && !card.contains(e.relatedTarget as Node))
+        card.classList.remove("hot");
     };
     stage?.addEventListener("pointerleave", onLeave);
-    ring?.addEventListener("pointerover", onOver);
-    ring?.addEventListener("pointerout", onOut);
+    root.addEventListener("pointerover", onOver);
+    root.addEventListener("pointerout", onOut);
 
     return () => {
-      if (interval) clearInterval(interval);
+      autoTween?.kill();
+      momentumTween?.kill();
       io.disconnect();
+      root.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
       stage?.removeEventListener("pointerleave", onLeave);
-      ring?.removeEventListener("pointerover", onOver);
-      ring?.removeEventListener("pointerout", onOut);
+      root.removeEventListener("pointerover", onOver);
+      root.removeEventListener("pointerout", onOut);
     };
-  }, [N, step, speed]);
+  }, [N, step, speed, radius, items]);
 
   return (
     <div
       ref={rootRef}
       data-techring
       className={`relative h-full w-full overflow-hidden ${className}`}
-      style={{ perspective: "1500px", perspectiveOrigin: "50% 42%" }}
+      style={{
+        perspective: "1500px",
+        perspectiveOrigin: "50% 42%",
+        touchAction: "pan-y",
+        cursor: "grab",
+      }}
     >
-      {/* spin + hover interactions (scoped) */}
       <style>{`
-        @keyframes tr-spin{ from{ transform:rotateY(0deg); } to{ transform:rotateY(360deg); } }
-        [data-techring] .tr-spin{ animation:tr-spin 24s linear infinite; will-change:transform; }
-        [data-techring].tr-paused .tr-spin{ animation-play-state:paused; }
-        @media (prefers-reduced-motion: reduce){
-          [data-techring] .tr-spin{ animation:none; }
-        }
-        [data-techring] .tr-card{ transition:opacity .3s linear; }
+        [data-techring] .tr-card{ transition:opacity .3s linear; cursor:pointer; }
         [data-techring] .tr-card-inner{
           transition:transform .42s cubic-bezier(.22,1,.36,1),
                      box-shadow .42s ease, border-color .42s ease, filter .42s ease;
@@ -202,7 +278,11 @@ export default function TechRing({
         [data-techring] .tr-card.hot .tr-sheen{ left:130%; }
         [data-techring] .tr-card.hot .tr-logo{ transform:translateY(-2px) scale(1.08); }
         [data-techring] .tr-card.hot .tr-cat{ letter-spacing:.3em; }
+        @media (prefers-reduced-motion:reduce){
+          [data-techring] .tr-card{ transition:none; }
+        }
       `}</style>
+
       {/* atmospheric glow */}
       <div
         className="pointer-events-none absolute left-1/2 top-[46%] h-[1200px] w-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -220,13 +300,16 @@ export default function TechRing({
       />
 
       {/* 3D stage */}
-      <div ref={stageRef} className="absolute inset-0 flex items-center justify-center">
+      <div
+        ref={stageRef}
+        className="absolute inset-0 flex items-center justify-center"
+      >
         <div
-          ref={ringRef}
           className="relative h-px w-px [transform-style:preserve-3d]"
-          style={{ transform: `translateY(${lift}px) scale(${scale}) rotateZ(${roll}deg) rotateX(${tilt}deg)` }}
+          style={{
+            transform: `translateY(${lift}px) scale(${scale}) rotateZ(${roll}deg) rotateX(${tilt}deg)`,
+          }}
         >
-          {/* optional centre figure — stays upright by cancelling tilt + roll */}
           {centerImage && (
             <div
               className="pointer-events-none absolute left-1/2 top-1/2"
@@ -261,18 +344,11 @@ export default function TechRing({
               />
             </div>
           )}
-          {/* las tarjetas viven en un spinner con animación CSS: un solo
-              transform compuesto en GPU en vez de 12 estilos por frame */}
+
+          {/* GSAP controls rotateY on this wrapper */}
           <div
-            className="tr-spin absolute left-0 top-0 h-px w-px [transform-style:preserve-3d]"
-            style={
-              speed !== 0
-                ? {
-                    animationDuration: `${360 / Math.abs(speed)}s`,
-                    animationDirection: speed < 0 ? "reverse" : "normal",
-                  }
-                : { animation: "none" }
-            }
+            ref={spinnerRef}
+            className="absolute left-0 top-0 h-px w-px [transform-style:preserve-3d]"
           >
             {items.map((tech, i) => {
               const t0 = (Math.cos((i * step * Math.PI) / 180) + 1) / 2;
@@ -305,10 +381,6 @@ export default function TechRing({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Card                                                              */
-/* ------------------------------------------------------------------ */
-
 function TechCard({ tech }: { tech: Tech }) {
   const c = tech.color;
   return (
@@ -320,23 +392,26 @@ function TechCard({ tech }: { tech: Tech }) {
         boxShadow: `0 24px 50px -18px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.06), 0 0 22px -8px color-mix(in srgb, ${c} 34%, transparent)`,
       }}
     >
-      {/* top brand accent line */}
       <span
         className="absolute left-[26px] right-[26px] top-0 h-0.5"
-        style={{ background: `linear-gradient(90deg,transparent,${c},transparent)`, opacity: 0.85 }}
+        style={{
+          background: `linear-gradient(90deg,transparent,${c},transparent)`,
+          opacity: 0.85,
+        }}
       />
-      {/* sheen barrido en hover */}
       <span className="tr-sheen" aria-hidden="true" />
-      {/* logo */}
       <div
         className="tr-logo flex flex-1 items-center justify-center px-5 pb-2 pt-[34px] [&>svg]:h-[78px] [&>svg]:w-[78px]"
-        style={{ filter: `drop-shadow(0 6px 16px color-mix(in srgb, ${c} 55%, transparent))` }}
+        style={{
+          filter: `drop-shadow(0 6px 16px color-mix(in srgb, ${c} 55%, transparent))`,
+        }}
       >
         {TechLogos[tech.logo]}
       </div>
-      {/* meta */}
       <div className="w-full px-[18px] pb-6 text-center">
-        <div className="text-[20px] font-semibold tracking-tight text-white">{tech.name}</div>
+        <div className="text-[20px] font-semibold tracking-tight text-white">
+          {tech.name}
+        </div>
         <div
           className="tr-cat mt-[7px] font-mono text-[10.5px] font-medium uppercase tracking-[0.22em]"
           style={{ color: c, filter: "brightness(1.25)" }}
