@@ -1,13 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
 import TechRing from "./tech-ring/TechRing";
 
-const EASE = [0.22, 1, 0.36, 1] as const;
-
-/** El nombre gigante queda DETRÁS del anillo: las tarjetas y el retrato
- *  pasan por delante del texto, creando profundidad real. */
 export default function Hero({ started }: { started: boolean }) {
   const [ringScale, setRingScale] = useState(0.73);
 
@@ -22,38 +17,23 @@ export default function Hero({ started }: { started: boolean }) {
   }, []);
 
   return (
-    <section className="relative h-[100svh] overflow-hidden">
+    <section className={`relative h-screen h-[100svh] overflow-hidden ${started ? "started" : ""}`}>
       {/* nombre gigante — capa trasera */}
       <div className="absolute inset-x-0 top-[13%] z-0 select-none text-center md:top-[11%]">
         <div className="overflow-hidden">
-          <motion.div
-            initial={{ y: "112%" }}
-            animate={started ? { y: 0 } : {}}
-            transition={{ duration: 1.1, ease: EASE, delay: 0.15 }}
-            className="font-display text-[clamp(64px,13vw,185px)] font-bold leading-[0.92] tracking-[-0.03em]"
-          >
+          <div className="hero-slide hero-slide-1 font-display text-[clamp(64px,13vw,185px)] font-bold leading-[0.92] tracking-[-0.03em]">
             LUCIANO
-          </motion.div>
+          </div>
         </div>
         <div className="overflow-hidden">
-          <motion.div
-            initial={{ y: "112%" }}
-            animate={started ? { y: 0 } : {}}
-            transition={{ duration: 1.1, ease: EASE, delay: 0.28 }}
-            className="text-outline font-display text-[clamp(64px,13vw,185px)] font-bold leading-[0.92] tracking-[-0.03em]"
-          >
+          <div className="hero-slide hero-slide-2 text-outline font-display text-[clamp(64px,13vw,185px)] font-bold leading-[0.92] tracking-[-0.03em]">
             FLORES
-          </motion.div>
+          </div>
         </div>
       </div>
 
       {/* anillo 3D — capa media */}
-      <motion.div
-        className="absolute inset-0 z-10"
-        initial={{ opacity: 0, scale: 1.05 }}
-        animate={started ? { opacity: 1, scale: 1 } : {}}
-        transition={{ duration: 1.4, ease: EASE, delay: 0.4 }}
-      >
+      <div className="hero-ring absolute inset-0 z-10">
         <TechRing
           tilt={20}
           roll={-6}
@@ -61,15 +41,10 @@ export default function Hero({ started }: { started: boolean }) {
           scale={ringScale}
           centerImage="/center-figure.webp"
         />
-      </motion.div>
+      </div>
 
-      {/* overlay de información — capa frontal */}
-      <motion.div
-        className="pointer-events-none absolute inset-0 z-20"
-        initial={{ opacity: 0 }}
-        animate={started ? { opacity: 1 } : {}}
-        transition={{ duration: 1, delay: 0.9 }}
-      >
+      {/* overlay de informacion — capa frontal */}
+      <div className="hero-overlay pointer-events-none absolute inset-0 z-20">
         {/* texto vertical lateral */}
         <p className="absolute left-6 top-1/2 hidden -translate-y-1/2 rotate-180 font-mono text-[10px] uppercase tracking-[0.4em] text-muted [writing-mode:vertical-rl] lg:block">
           Full Stack Developer — Salta, Argentina
@@ -115,7 +90,7 @@ export default function Hero({ started }: { started: boolean }) {
             </a>
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

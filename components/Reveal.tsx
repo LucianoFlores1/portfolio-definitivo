@@ -1,19 +1,7 @@
 "use client";
 
-import { motion, type Variants } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-const EASE = [0.22, 1, 0.36, 1] as const;
-
-const variants: Variants = {
-  hidden: { opacity: 0, y: 32 },
-  show: (delay: number = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.85, ease: EASE, delay },
-  }),
-};
-
-/** Aparece al entrar en viewport: fade + subida suave. */
 export default function Reveal({
   children,
   delay = 0,
@@ -23,16 +11,32 @@ export default function Reveal({
   delay?: number;
   className?: string;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "-72px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <motion.div
-      className={className}
-      variants={variants}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-72px" }}
-      custom={delay}
+    <div
+      ref={ref}
+      className={`reveal ${visible ? "revealed" : ""} ${className}`}
+      style={delay ? { transitionDelay: `${delay}s` } : undefined}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

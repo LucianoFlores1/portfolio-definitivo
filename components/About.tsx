@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { animate, useInView } from "motion/react";
+import { useInView } from "@/hooks/useInView";
 import Reveal from "./Reveal";
 import SectionHead from "./SectionHead";
+
+const easeOut = (t: number) => 1 - (1 - t) ** 3;
 
 function Counter({ to }: { to: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -11,14 +13,16 @@ function Counter({ to }: { to: number }) {
 
   useEffect(() => {
     if (!inView) return;
-    const controls = animate(0, to, {
-      duration: 1.6,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate: (v) => {
-        if (ref.current) ref.current.textContent = String(Math.round(v));
-      },
-    });
-    return () => controls.stop();
+    const duration = 1600;
+    const start = performance.now();
+    let raf = 0;
+    const tick = () => {
+      const t = Math.min((performance.now() - start) / duration, 1);
+      if (ref.current) ref.current.textContent = String(Math.round(easeOut(t) * to));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [inView, to]);
 
   return <span ref={ref}>0</span>;
@@ -74,7 +78,7 @@ export default function About() {
         </Reveal>
       </div>
 
-      {/* métricas */}
+      {/* metricas */}
       <div className="mt-20 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-4">
         {STATS.map((s, i) => (
           <div key={s.label} className="bg-panel p-7 md:p-9">

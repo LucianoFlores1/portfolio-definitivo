@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
 
 const LINKS = [
   { href: "#perfil", label: "Perfil" },
@@ -21,11 +20,10 @@ export default function Nav({ started }: { started: boolean }) {
   }, []);
 
   return (
-    <motion.header
-      initial={{ y: -64, opacity: 0 }}
-      animate={started ? { y: 0, opacity: 1 } : {}}
-      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
+    <header
+      className={`nav-enter fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
+        started ? "started" : ""
+      } ${
         scrolled
           ? "border-b border-line bg-bg/90 md:bg-bg/80 md:backdrop-blur-md"
           : "border-b border-transparent"
@@ -59,6 +57,6 @@ export default function Nav({ started }: { started: boolean }) {
           Disponible
         </a>
       </nav>
-    </motion.header>
+    </header>
   );
 }
