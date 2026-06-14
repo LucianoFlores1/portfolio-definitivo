@@ -149,31 +149,50 @@ export default function TechRing({
       isDragging = false;
       root.style.cursor = "grab";
 
-      // click (not drag) → navigate to project
+      // click (not drag) → flip card then navigate to project
       if (dragTotal < 5 && downTarget) {
         const card = downTarget.closest(".tr-card");
         if (card) {
           const idx = cardRefs.current.indexOf(card as HTMLDivElement);
           if (idx >= 0 && items[idx]?.project) {
-            const target = document.getElementById(
-              `proyecto-${items[idx].project}`,
-            );
-            if (target) {
-              target.scrollIntoView({ behavior: "smooth", block: "center" });
-              gsap.fromTo(
-                target,
-                {
-                  boxShadow: `0 0 0 2px ${items[idx].color}, 0 0 28px ${items[idx].color}44`,
-                },
-                {
-                  boxShadow:
-                    "0 0 0 0px transparent, 0 0 0px transparent",
-                  duration: 2,
-                  ease: "power2.out",
-                  delay: 0.5,
-                },
+            const inner = card.querySelector(".tr-card-inner") as HTMLElement;
+            const tech = items[idx];
+            const scrollToProject = () => {
+              if (inner) gsap.set(inner, { rotateY: 0 });
+              const target = document.getElementById(
+                `proyecto-${tech.project}`,
               );
+              if (target) {
+                target.scrollIntoView({ behavior: "smooth", block: "center" });
+                gsap.fromTo(
+                  target,
+                  {
+                    boxShadow: `0 0 0 2px ${tech.color}, 0 0 28px ${tech.color}44`,
+                  },
+                  {
+                    boxShadow:
+                      "0 0 0 0px transparent, 0 0 0px transparent",
+                    duration: 2,
+                    ease: "power2.out",
+                    delay: 0.5,
+                  },
+                );
+              }
+              startAuto();
+            };
+
+            if (inner) {
+              gsap.to(inner, {
+                rotateY: 360,
+                duration: 0.55,
+                ease: "power2.inOut",
+                onComplete: scrollToProject,
+              });
+            } else {
+              scrollToProject();
             }
+            downTarget = null;
+            return;
           }
         }
         startAuto();
@@ -249,7 +268,7 @@ export default function TechRing({
     <div
       ref={rootRef}
       data-techring
-      className={`relative h-full w-full overflow-hidden ${className}`}
+      className={`relative h-full w-full select-none overflow-hidden ${className}`}
       style={{
         perspective: "1500px",
         perspectiveOrigin: "50% 42%",
