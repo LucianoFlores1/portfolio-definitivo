@@ -345,6 +345,12 @@ body {
   transform: translateY(0);
 }
 
+/* ---- custom cursor (desktop only, JS-activated) ---- */
+html.custom-cursor,
+html.custom-cursor * {
+  cursor: none !important;
+}
+
 /* ---- reduced motion: skip all entrance animations ---- */
 @media (prefers-reduced-motion: reduce) {
   .reveal,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Cursor from "@/components/Cursor";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -39,6 +40,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-bg font-body text-ink antialiased">
+        <Cursor />
         {children}
         {/* grano sutil sobre toda la página — solo desktop: en mobile la capa
             fija a pantalla completa suma overdraw sin aporte visible */}
