@@ -266,6 +266,70 @@ body {
   opacity: 1;
 }
 
+/* ---- tech ring (3D carousel) ---- */
+[data-techring] .tr-card {
+  will-change: opacity;
+  cursor: pointer;
+}
+[data-techring] .tr-card-inner {
+  transition:
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.42s ease,
+    border-color 0.42s ease;
+}
+[data-techring] .tr-sheen {
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 90%;
+  height: 100%;
+  transform: skewX(-18deg);
+  pointer-events: none;
+  transition: left 0.7s ease;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.14),
+    transparent
+  );
+}
+[data-techring] .tr-logo {
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-techring] .tr-cat {
+  transition: letter-spacing 0.42s ease;
+}
+[data-techring] .tr-card.hot {
+  z-index: 999 !important;
+}
+[data-techring] .tr-card.hot .tr-card-inner {
+  transform: scale(1.13) translateY(-8px);
+  box-shadow:
+    0 28px 50px -12px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+[data-techring] .tr-card.hot .tr-sheen {
+  left: 130%;
+}
+[data-techring] .tr-card.hot .tr-logo {
+  transform: translateY(-2px) scale(1.08);
+}
+[data-techring] .tr-card.hot .tr-cat {
+  letter-spacing: 0.3em;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-techring] .tr-card,
+  [data-techring] .tr-card-inner,
+  [data-techring] .tr-sheen,
+  [data-techring] .tr-logo,
+  [data-techring] .tr-cat {
+    transition: none !important;
+  }
+  [data-techring] .tr-card {
+    will-change: auto;
+  }
+}
+
 /* ---- nav entrance ---- */
 .nav-enter {
   opacity: 0;

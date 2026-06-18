@@ -83,6 +83,7 @@ export default function TechRing({
     let downTarget: HTMLElement | null = null;
     let autoTween: gsap.core.Tween | null = null;
     let momentumTween: gsap.core.Tween | null = null;
+    const prevFront = new Uint8Array(N);
 
     const updateRing = () => {
       spinner.style.transform = `rotateY(${rot.y}deg)`;
@@ -91,9 +92,13 @@ export default function TechRing({
         if (!el) continue;
         const theta = rot.y + i * step;
         const t = (Math.cos((theta * Math.PI) / 180) + 1) / 2;
-        el.style.opacity = (0.35 + 0.65 * t).toFixed(3);
-        el.style.zIndex = String(Math.round(t * 100));
-        el.style.pointerEvents = t > 0.5 ? "auto" : "none";
+        el.style.opacity = String(0.35 + 0.65 * t);
+        const front = t > 0.5 ? 1 : 0;
+        if (prevFront[i] !== front) {
+          prevFront[i] = front as 0 | 1;
+          el.style.zIndex = front ? "1" : "0";
+          el.style.pointerEvents = front ? "auto" : "none";
+        }
       }
     };
 
@@ -274,34 +279,9 @@ export default function TechRing({
         perspectiveOrigin: "50% 42%",
         touchAction: "pan-y",
         cursor: "grab",
+        contain: "layout style",
       }}
     >
-      <style>{`
-        [data-techring] .tr-card{ transition:opacity .3s linear; cursor:pointer; }
-        [data-techring] .tr-card-inner{
-          transition:transform .42s cubic-bezier(.22,1,.36,1),
-                     box-shadow .42s ease, border-color .42s ease, filter .42s ease;
-        }
-        [data-techring] .tr-sheen{
-          position:absolute;top:0;left:-120%;width:90%;height:100%;
-          transform:skewX(-18deg);pointer-events:none;transition:left .7s ease;
-          background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
-        }
-        [data-techring] .tr-logo{ transition:transform .42s cubic-bezier(.22,1,.36,1); }
-        [data-techring] .tr-cat{ transition:letter-spacing .42s ease; }
-        [data-techring] .tr-card.hot{ z-index:999 !important; }
-        [data-techring] .tr-card.hot .tr-card-inner{
-          transform:scale(1.13) translateY(-8px);
-          filter:brightness(1.35) saturate(1.15);
-        }
-        [data-techring] .tr-card.hot .tr-sheen{ left:130%; }
-        [data-techring] .tr-card.hot .tr-logo{ transform:translateY(-2px) scale(1.08); }
-        [data-techring] .tr-card.hot .tr-cat{ letter-spacing:.3em; }
-        @media (prefers-reduced-motion:reduce){
-          [data-techring] .tr-card{ transition:none; }
-        }
-      `}</style>
-
       {/* atmospheric glow */}
       <div
         className="pointer-events-none absolute left-1/2 top-[46%] h-[1200px] w-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -343,7 +323,7 @@ export default function TechRing({
                   width: "170%",
                   height: "130%",
                   background:
-                    "radial-gradient(ellipse 48% 54% at 50% 50%, rgba(64,96,176,.18), rgba(64,96,176,.06) 55%, transparent 80%)",
+                    "radial-gradient(ellipse 48% 54% at 50% 50%, rgba(64,96,176,.18), transparent 80%)",
                 }}
               />
               <img
@@ -353,8 +333,7 @@ export default function TechRing({
                 decoding="async"
                 className="block w-full"
                 style={{
-                  filter:
-                    "drop-shadow(0 30px 42px rgba(0,0,0,.72)) drop-shadow(0 0 30px rgba(110,140,220,.10))",
+                  filter: "drop-shadow(0 24px 36px rgba(0,0,0,.7))",
                   WebkitMaskImage:
                     "linear-gradient(to bottom, #000 46%, rgba(0,0,0,.6) 62%, rgba(0,0,0,.28) 76%, rgba(0,0,0,.08) 88%, transparent 96%)",
                   maskImage:
@@ -368,6 +347,7 @@ export default function TechRing({
           <div
             ref={spinnerRef}
             className="absolute left-0 top-0 h-px w-px [transform-style:preserve-3d]"
+            style={{ willChange: "transform" }}
           >
             {items.map((tech, i) => {
               const t0 = (Math.cos((i * step * Math.PI) / 180) + 1) / 2;
@@ -385,7 +365,7 @@ export default function TechRing({
                     marginTop: -cardHeight / 2,
                     transform: `rotateY(${i * step}deg) translateZ(${radius}px)`,
                     opacity: 0.35 + 0.65 * t0,
-                    zIndex: Math.round(t0 * 100),
+                    zIndex: t0 > 0.5 ? 1 : 0,
                     pointerEvents: t0 > 0.5 ? "auto" : "none",
                   }}
                 >
@@ -421,9 +401,7 @@ function TechCard({ tech }: { tech: Tech }) {
       <span className="tr-sheen" aria-hidden="true" />
       <div
         className="tr-logo flex flex-1 items-center justify-center px-5 pb-2 pt-[34px] [&>svg]:h-[78px] [&>svg]:w-[78px]"
-        style={{
-          filter: `drop-shadow(0 6px 16px color-mix(in srgb, ${c} 55%, transparent))`,
-        }}
+        style={{ color: c }}
       >
         {TechLogos[tech.logo]}
       </div>
