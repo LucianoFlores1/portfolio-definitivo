@@ -18,8 +18,13 @@ export default function SmoothScroll({
     const isMobile = "ontouchstart" in window || window.innerWidth < 768;
 
     if (isMobile) {
-      ScrollTrigger.refresh();
-      return;
+      const onScroll = () => ScrollTrigger.update();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      const id = setTimeout(() => ScrollTrigger.refresh(), 800);
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        clearTimeout(id);
+      };
     }
 
     const lenis = new Lenis({

@@ -15,9 +15,6 @@
   --color-hot: #ffb054;
 }
 
-html {
-  scroll-behavior: smooth;
-}
 
 body {
   background: var(--color-bg);

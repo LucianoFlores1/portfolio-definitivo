@@ -339,7 +339,8 @@ export default function ProjectsPS4() {
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const isMobile = "ontouchstart" in window || window.innerWidth < 768;
+    if (isMobile || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setFold(2);
       return;
     }
