@@ -207,6 +207,7 @@ export default function ProjectsPS4() {
   const [sel, setSel] = useState(0);
   const [switching, setSwitching] = useState(false);
   const [fold, setFold] = useState(0);
+  const [vpW, setVpW] = useState(0);
   const acRef = useRef<AudioContext | null>(null);
   const swRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -218,6 +219,14 @@ export default function ProjectsPS4() {
   const scrollingToRef = useRef(false);
 
   const cur = PROJECTS[sel];
+  const isMob = vpW > 0 && vpW < 768;
+
+  useEffect(() => {
+    const upd = () => setVpW(window.innerWidth);
+    upd();
+    window.addEventListener("resize", upd);
+    return () => window.removeEventListener("resize", upd);
+  }, []);
 
   const ensureAC = useCallback(() => {
     if (!acRef.current) try { acRef.current = new AudioContext(); } catch { /* no audio */ }
@@ -398,13 +407,15 @@ export default function ProjectsPS4() {
     if (url) window.open(url, "_blank", "noopener");
   };
 
-  const trackX = (1 - sel) * STEP;
+  const trackX = isMob
+    ? (vpW - 48) / 2 - sel * STEP - CARD / 2
+    : (1 - sel) * STEP;
 
   return (
     <section
       ref={sectionRef}
       id="proyectos"
-      className="relative overflow-hidden py-32 md:py-48"
+      className="relative overflow-hidden py-20 md:py-48"
     >
       {/* Ambient glow keyed to selected project */}
       <div
@@ -659,12 +670,14 @@ export default function ProjectsPS4() {
         </div>
       </div>
 
-      {/* Scroll progress dots — desktop only */}
-      <div className="pointer-events-none absolute right-6 top-1/2 hidden -translate-y-1/2 flex-col gap-2.5 md:flex">
+      {/* Progress dots — mobile: bottom center horizontal, desktop: right side vertical */}
+      <div className="absolute inset-x-0 bottom-4 z-[4] flex justify-center gap-2.5 md:pointer-events-none md:inset-x-auto md:bottom-auto md:right-6 md:top-1/2 md:-translate-y-1/2 md:flex-col md:justify-start">
         {PROJECTS.map((p, i) => (
-          <div
+          <button
             key={p.id}
-            className="h-2 w-2 rounded-full transition-all duration-300"
+            onClick={() => { pick(i); scrollToProject(i); }}
+            className="h-2.5 w-2.5 rounded-full transition-all duration-300 md:h-2 md:w-2"
+            aria-label={`Ir a ${p.name}`}
             style={{
               background: i === sel ? cur.accent : "rgba(255,255,255,.18)",
               boxShadow: i === sel ? `0 0 8px ${cur.accent}` : "none",

@@ -51,7 +51,8 @@ export default function Intro({ onReveal }: { onReveal: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] cursor-pointer"
+      className="fixed inset-0 z-[100] cursor-pointer overflow-hidden"
+      style={{ width: "100vw", height: "100dvh" }}
       onClick={startExit}
       aria-hidden="true"
     >
