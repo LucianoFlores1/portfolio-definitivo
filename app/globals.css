@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 
 @theme {
   --font-display: "Clash Display", "Satoshi", sans-serif;
@@ -95,12 +96,12 @@ body {
 .sheen-host .sheen {
   position: absolute;
   top: 0;
-  left: -130%;
+  left: 0;
   width: 80%;
   height: 100%;
-  transform: skewX(-18deg);
+  transform: translateX(-163%) skewX(-18deg);
   pointer-events: none;
-  transition: left 0.8s ease;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   background: linear-gradient(
     90deg,
     transparent,
@@ -109,15 +110,15 @@ body {
   );
 }
 .sheen-host:hover .sheen {
-  left: 150%;
+  transform: translateX(188%) skewX(-18deg);
 }
 
 /* ---- tarjetas de proyecto (color por proyecto via --pc) ---- */
 .pcard {
   transition:
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.5s ease,
-    box-shadow 0.5s ease;
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 .pcard:hover {
   transform: translateY(-6px);
@@ -145,6 +146,69 @@ body {
   animation: scroll-hint 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
+/* ---- scroll arrow interactivo ---- */
+@keyframes scroll-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(7px);
+  }
+}
+@keyframes scroll-fade-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+.scroll-arrow {
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.scroll-arrow:hover {
+  transform: translateX(-50%) scale(1.18);
+}
+.scroll-arrow:hover span:first-child {
+  color: var(--color-accent);
+  letter-spacing: 0.5em;
+}
+.scroll-arrow-icon {
+  animation: scroll-bounce 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  filter: drop-shadow(0 0 0px transparent);
+  transition: filter 0.3s ease;
+}
+.scroll-arrow:hover .scroll-arrow-icon {
+  animation-play-state: paused;
+  filter: drop-shadow(0 0 10px var(--color-accent));
+}
+.scroll-arrow:active .scroll-arrow-icon {
+  transform: translateY(4px);
+}
+.scroll-chevron-1 {
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+}
+.scroll-chevron-2 {
+  animation: scroll-fade-pulse 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+}
+.scroll-arrow:hover .scroll-chevron-1 {
+  transform: translateY(-2px);
+  opacity: 1;
+}
+.scroll-arrow:hover .scroll-chevron-2 {
+  transform: translateY(2px);
+  opacity: 0.85;
+  animation-play-state: paused;
+}
+
 /* ---- subrayado animado en links ---- */
 .link-line {
   position: relative;
@@ -159,17 +223,17 @@ body {
   background: currentColor;
   transform: scaleX(0);
   transform-origin: right;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .link-line:hover::after {
   transform: scaleX(1);
   transform-origin: left;
 }
 
-/* ---- reveal (initial hidden state — GSAP ScrollTrigger animates to visible) ---- */
-.reveal {
-  opacity: 0;
-  transform: translateY(32px);
+/* ---- about word reveal ---- */
+.about-word {
+  display: inline-block;
+  transition: opacity 0.1s ease;
 }
 
 /* ---- intro (mount animations + exit transitions) ---- */
@@ -273,19 +337,19 @@ body {
 }
 [data-techring] .tr-card-inner {
   transition:
-    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.42s ease,
-    border-color 0.42s ease;
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 }
 [data-techring] .tr-sheen {
   position: absolute;
   top: 0;
-  left: -120%;
+  left: 0;
   width: 90%;
   height: 100%;
-  transform: skewX(-18deg);
+  transform: translateX(-133%) skewX(-18deg);
   pointer-events: none;
-  transition: left 0.7s ease;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   background: linear-gradient(
     90deg,
     transparent,
@@ -294,10 +358,10 @@ body {
   );
 }
 [data-techring] .tr-logo {
-  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 [data-techring] .tr-cat {
-  transition: letter-spacing 0.42s ease;
+  transition: letter-spacing 0.3s ease;
 }
 [data-techring] .tr-card.hot {
   z-index: 999 !important;
@@ -309,7 +373,7 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 [data-techring] .tr-card.hot .tr-sheen {
-  left: 130%;
+  transform: translateX(144%) skewX(-18deg);
 }
 [data-techring] .tr-card.hot .tr-logo {
   transform: translateY(-2px) scale(1.08);
@@ -345,6 +409,11 @@ body {
   transform: translateY(0);
 }
 
+/* ---- PS4 projects ---- */
+.ps4-card:not(.ps4-card-active):hover {
+  opacity: 1 !important;
+}
+
 /* ---- custom cursor (desktop only, JS-activated) ---- */
 html.custom-cursor,
 html.custom-cursor * {
@@ -353,7 +422,7 @@ html.custom-cursor * {
 
 /* ---- reduced motion: skip all entrance animations ---- */
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
+  .about-word,
   .hero-slide,
   .hero-ring,
   .hero-overlay,
@@ -362,7 +431,14 @@ html.custom-cursor * {
   .intro-title,
   .intro-bar,
   .intro-content,
-  .intro-curtain {
+  .intro-curtain,
+  .pulse-dot,
+  .scroll-hint-bar,
+  .scroll-arrow-icon,
+  .scroll-chevron-2,
+  .pcard,
+  .sheen-host .sheen,
+  .link-line::after {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;

@@ -136,14 +136,26 @@ export default function Hero({ started }: { started: boolean }) {
             </p>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 md:flex">
-            <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-muted">
+          <a
+            href="#proyectos"
+            className="scroll-arrow pointer-events-auto absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById("proyectos")?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-muted transition-colors duration-300 group-hover:text-accent">
               Scroll
             </span>
-            <span className="relative block h-9 w-px overflow-hidden bg-line">
-              <span className="scroll-hint-bar absolute left-0 top-0 h-4 w-px bg-accent" />
+            <span className="scroll-arrow-icon relative flex flex-col items-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="scroll-chevron-1 text-accent">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="scroll-chevron-2 -mt-3 text-accent/50">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
             </span>
-          </div>
+          </a>
 
           <div className="pointer-events-auto flex items-center gap-4">
             <a

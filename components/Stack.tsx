@@ -1,90 +1,112 @@
+"use client";
+
 import Reveal from "./Reveal";
 import SectionHead from "./SectionHead";
 
-const GROUPS: { title: string; accent: string; items: string[] }[] = [
+const si = (slug: string, c: string) =>
+  `https://cdn.simpleicons.org/${slug}/${c}`;
+
+type Tech = { name: string; src: string; color: string };
+
+const GROUPS: { cat: string; accent: string; items: Tech[] }[] = [
   {
-    title: "Frontend",
+    cat: "Frontend",
     accent: "#61DAFB",
     items: [
-      "React.js",
-      "Next.js (App Router)",
-      "TypeScript",
-      "TailwindCSS v4",
-      "PWA · Service Workers",
-      "TanStack Query",
-      "IndexedDB / Dexie.js",
-      "Vite · HLS.js",
+      { name: "React", src: si("react", "61DAFB"), color: "#61DAFB" },
+      { name: "Next.js", src: si("nextdotjs", "ffffff"), color: "#ffffff" },
+      { name: "TypeScript", src: si("typescript", "3178C6"), color: "#3178C6" },
+      { name: "Tailwind", src: si("tailwindcss", "06B6D4"), color: "#06B6D4" },
+      { name: "Vite", src: si("vite", "646CFF"), color: "#646CFF" },
+      { name: "TanStack", src: si("reactquery", "FF4154"), color: "#FF4154" },
     ],
   },
   {
-    title: "Backend",
-    accent: "#3C873A",
+    cat: "Backend",
+    accent: "#5FA04E",
     items: [
-      "Node.js · Express",
-      "APIs REST · Microservicios",
-      "Python · Django · Flask",
-      "Firebase Auth · Google Auth",
-      "Web Crypto API (AES-GCM)",
-      "Playwright (E2E / scraping)",
+      { name: "Node.js", src: si("nodedotjs", "5FA04E"), color: "#5FA04E" },
+      { name: "Express", src: si("express", "ffffff"), color: "#ffffff" },
+      { name: "Python", src: si("python", "3776AB"), color: "#3776AB" },
+      { name: "Django", src: si("django", "092E20"), color: "#44B78B" },
+      { name: "Flask", src: si("flask", "ffffff"), color: "#ffffff" },
+      { name: "Firebase", src: si("firebase", "DD2C00"), color: "#DD2C00" },
     ],
   },
   {
-    title: "Datos",
+    cat: "Datos",
     accent: "#FFD43B",
     items: [
-      "MySQL · SQL",
-      "Supabase (PostgreSQL)",
-      "Firebase Firestore",
-      "Pandas · Pipelines ETL",
-      "Power BI",
-      "Web scraping",
+      { name: "MySQL", src: si("mysql", "4479A1"), color: "#4479A1" },
+      { name: "Supabase", src: si("supabase", "3FCF8E"), color: "#3FCF8E" },
+      { name: "PostgreSQL", src: si("postgresql", "4169E1"), color: "#4169E1" },
+      { name: "Pandas", src: si("pandas", "150458"), color: "#E70488" },
+      { name: "Power BI", src: si("powerbi", "F2C811"), color: "#F2C811" },
     ],
   },
   {
-    title: "DevOps & IA",
+    cat: "DevOps & Herramientas",
     accent: "#ffb054",
     items: [
-      "Git / GitHub",
-      "Vercel · CI/CD",
-      "n8n · Zapier · Make",
-      "Prompt engineering",
-      "IA generativa",
-      "Agile / Scrum",
+      { name: "Git", src: si("git", "F05032"), color: "#F05032" },
+      { name: "GitHub", src: si("github", "ffffff"), color: "#ffffff" },
+      { name: "Vercel", src: si("vercel", "ffffff"), color: "#ffffff" },
+      { name: "n8n", src: si("n8n", "EA4B71"), color: "#EA4B71" },
+      { name: "Playwright", src: "/playwright-logo.webp", color: "#2EAD33" },
     ],
   },
 ];
 
 export default function Stack() {
   return (
-    <section id="stack" className="mx-auto max-w-7xl px-6 py-28 md:px-10 md:py-40">
+    <section id="stack" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
       <SectionHead index="04" label="Stack tecnológico" />
 
-      <div className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-        {GROUPS.map((g, i) => (
-          <div key={g.title} className="bg-panel p-8">
-            <Reveal delay={i * 0.08}>
-              <h3
-                className="font-mono text-[11px] font-bold uppercase tracking-[0.3em]"
-                style={{ color: g.accent }}
-              >
-                {g.title}
-              </h3>
-              <ul className="mt-6 space-y-3">
-                {g.items.map((item) => (
-                  <li
-                    key={item}
-                    className="group flex items-center gap-3 text-sm text-ink/80 transition-colors hover:text-ink"
-                  >
-                    <span
-                      className="h-px w-3 shrink-0 bg-line transition-all group-hover:w-5"
-                      style={{ backgroundColor: `${g.accent}55` }}
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
+      <div className="space-y-10">
+        {GROUPS.map((g, gi) => (
+          <Reveal key={g.cat} variant="fade-up" delay={gi * 0.06}>
+            <h3
+              className="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.3em]"
+              style={{ color: g.accent }}
+            >
+              {g.cat}
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {g.items.map((t) => (
+                <div
+                  key={t.name}
+                  className="group flex items-center gap-3 rounded-xl border border-line bg-panel px-4 py-3 transition-all duration-300 hover:border-transparent hover:shadow-lg"
+                  style={
+                    {
+                      "--tc": t.color,
+                    } as React.CSSProperties
+                  }
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget;
+                    el.style.borderColor = `color-mix(in srgb, ${t.color} 40%, transparent)`;
+                    el.style.boxShadow = `0 8px 30px -8px color-mix(in srgb, ${t.color} 25%, transparent)`;
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget;
+                    el.style.borderColor = "";
+                    el.style.boxShadow = "";
+                  }}
+                >
+                  <img
+                    src={t.src}
+                    alt={t.name}
+                    width={22}
+                    height={22}
+                    loading="lazy"
+                    className="transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <span className="text-sm font-medium text-ink/80 transition-colors group-hover:text-ink">
+                    {t.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         ))}
       </div>
     </section>
