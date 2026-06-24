@@ -1,5 +1,12 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Reveal from "./Reveal";
 import SectionHead from "./SectionHead";
+
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
 const CHANNELS: { label: string; value: string; href: string }[] = [
   {
@@ -20,9 +27,35 @@ const CHANNELS: { label: string; value: string; href: string }[] = [
 ];
 
 export default function Contact() {
+  const headRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    const el = headRef.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        el,
+        { scale: 0.75, opacity: 0 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 88%",
+            end: "top 50%",
+            scrub: 1,
+          },
+        },
+      );
+    });
+    return () => ctx.revert();
+  }, []);
+
   return (
     <section id="contacto" className="relative overflow-hidden">
-      {/* glow de cierre, mismo lenguaje que el hero */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-[68%] h-[800px] w-[1100px] -translate-x-1/2 rounded-full blur-3xl"
@@ -35,20 +68,22 @@ export default function Contact() {
       <div className="relative mx-auto max-w-7xl px-6 pb-12 pt-28 md:px-10 md:pt-40">
         <SectionHead index="06" label="Contacto" />
 
-        <Reveal>
-          <h2 className="font-display text-[clamp(56px,10vw,150px)] font-bold leading-[0.95] tracking-[-0.03em]">
-            ¿Construimos
-            <br />
-            <span className="text-outline">algo juntos?</span>
-          </h2>
+        <h2
+          ref={headRef}
+          className="font-display text-[clamp(56px,10vw,150px)] font-bold leading-[0.95] tracking-[-0.03em]"
+        >
+          ¿Construimos
+          <br />
+          <span className="text-outline">algo juntos?</span>
+        </h2>
+
+        <Reveal variant="fade-up" delay={0.1}>
           <p className="mt-8 max-w-xl leading-relaxed text-muted">
-            Busco equipos donde pueda aportar desde el día uno: producto real,
-            código limpio y mejora continua. Disponibilidad inmediata, remoto o
-            presencial en Salta.
+            Disponibilidad inmediata — remoto o presencial en Salta.
           </p>
         </Reveal>
 
-        <Reveal delay={0.15}>
+        <Reveal variant="fade-up" delay={0.15}>
           <ul className="mt-16 divide-y divide-line border-y border-line">
             {CHANNELS.map((ch) => (
               <li key={ch.label}>

@@ -1,65 +1,65 @@
 import Reveal from "./Reveal";
 import SectionHead from "./SectionHead";
 
-const EDUCATION: [string, string, string][] = [
-  ["UPATecO", "Tecnicatura Universitaria en Desarrollo de Software", "2022 — 2024"],
-  ["Coderhouse", "Programa de Analista de Datos", "2023 — 2024"],
-  ["Coderhouse", "Procesamiento de Datos en Excel", "2023"],
-  ["Fundación Forge", "Programa Tu Futuro", "2023 — 2024"],
-  ["Universidad Nacional de Salta", "Cursado universitario", "2022"],
+const EDUCATION: { org: string; program: string; period: string }[] = [
+  { org: "UPATecO", program: "Tecnicatura en Desarrollo de Software", period: "2022 — 2024" },
+  { org: "Coderhouse", program: "Analista de Datos", period: "2023 — 2024" },
+  { org: "Fundación Forge", program: "Programa Tu Futuro", period: "2023 — 2024" },
+  { org: "UNSa", program: "Cursado universitario", period: "2022" },
 ];
 
-const CERTS: [string, string, string][] = [
-  ["Cybersecurity Foundations", "Google", "2025"],
-  ["Generative AI", "Microsoft & Eidos", "2025"],
-  ["QA Manual & Agile Testing", "Fundación Coca-Cola", "2024"],
-  ["Testing QA Automatizado con Playwright", "—", "2024"],
-  ["Automatización con n8n", "—", "2023"],
+const CERTS: { name: string; issuer: string; year: string }[] = [
+  { name: "Cybersecurity Foundations", issuer: "Google", year: "2025" },
+  { name: "Generative AI", issuer: "Microsoft & Eidos", year: "2025" },
+  { name: "QA Manual & Agile Testing", issuer: "Fundación Coca-Cola", year: "2024" },
+  { name: "Testing QA con Playwright", issuer: "", year: "2024" },
+  { name: "Automatización con n8n", issuer: "", year: "2023" },
+  { name: "Procesamiento en Excel", issuer: "Coderhouse", year: "2023" },
 ];
 
 export default function Education() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-28 md:px-10 md:py-40">
-      <SectionHead index="05" label="Formación & Certificaciones" />
+    <section className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
+      <SectionHead index="05" label="Formación" />
 
-      <div className="grid gap-14 lg:grid-cols-2 lg:gap-20">
-        <Reveal>
-          <h3 className="mb-8 font-display text-2xl font-semibold tracking-tight">
-            Educación
-          </h3>
-          <ul className="divide-y divide-line border-y border-line">
-            {EDUCATION.map(([org, program, period]) => (
-              <li key={`${org}-${program}`} className="grid gap-1 py-5 sm:grid-cols-[1fr_auto] sm:gap-6">
+      <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+        <Reveal variant="fade-right">
+          <div className="space-y-3">
+            {EDUCATION.map((e) => (
+              <div
+                key={e.program}
+                className="flex items-baseline justify-between gap-4 rounded-lg border border-line bg-panel px-5 py-4 transition-colors hover:border-accent/30"
+              >
                 <div>
-                  <p className="text-sm font-medium text-ink">{program}</p>
-                  <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-                    {org}
+                  <p className="text-sm font-medium text-ink">{e.program}</p>
+                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+                    {e.org}
                   </p>
                 </div>
-                <p className="font-mono text-xs text-muted sm:pt-1">{period}</p>
-              </li>
+                <p className="shrink-0 font-mono text-[11px] text-muted">{e.period}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         </Reveal>
 
-        <Reveal delay={0.12}>
-          <h3 className="mb-8 font-display text-2xl font-semibold tracking-tight">
+        <Reveal variant="fade-left" delay={0.1}>
+          <h3 className="mb-4 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-hot">
             Certificaciones
           </h3>
-          <ul className="flex flex-wrap gap-3">
-            {CERTS.map(([name, issuer, year]) => (
-              <li
-                key={name}
-                className="group rounded-xl border border-line bg-panel px-4 py-3 transition-colors hover:border-accent/50"
+          <div className="flex flex-wrap gap-2">
+            {CERTS.map((c) => (
+              <span
+                key={c.name}
+                className="rounded-lg border border-line bg-panel px-3 py-2 text-[13px] text-ink/80 transition-colors hover:border-accent/40 hover:text-ink"
               >
-                <p className="text-sm text-ink">{name}</p>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                  {issuer !== "—" ? `${issuer} · ` : ""}
-                  <span className="text-hot">{year}</span>
-                </p>
-              </li>
+                {c.name}
+                {c.issuer && (
+                  <span className="ml-1.5 text-[10px] text-muted">· {c.issuer}</span>
+                )}
+                <span className="ml-1.5 font-mono text-[10px] text-hot">{c.year}</span>
+              </span>
             ))}
-          </ul>
+          </div>
         </Reveal>
       </div>
     </section>

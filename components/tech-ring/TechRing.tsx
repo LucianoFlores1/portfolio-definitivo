@@ -164,23 +164,11 @@ export default function TechRing({
             const tech = items[idx];
             const scrollToProject = () => {
               if (inner) gsap.set(inner, { rotateY: 0 });
-              const target = document.getElementById(
-                `proyecto-${tech.project}`,
-              );
-              if (target) {
-                target.scrollIntoView({ behavior: "smooth", block: "center" });
-                gsap.fromTo(
-                  target,
-                  {
-                    boxShadow: `0 0 0 2px ${tech.color}, 0 0 28px ${tech.color}44`,
-                  },
-                  {
-                    boxShadow:
-                      "0 0 0 0px transparent, 0 0 0px transparent",
-                    duration: 2,
-                    ease: "power2.out",
-                    delay: 0.5,
-                  },
+              const section = document.getElementById("proyectos");
+              if (section) {
+                section.scrollIntoView({ behavior: "smooth", block: "start" });
+                window.dispatchEvent(
+                  new CustomEvent("select-project", { detail: tech.project }),
                 );
               }
               startAuto();
@@ -189,7 +177,7 @@ export default function TechRing({
             if (inner) {
               gsap.to(inner, {
                 rotateY: 360,
-                duration: 0.55,
+                duration: 0.45,
                 ease: "power2.inOut",
                 onComplete: scrollToProject,
               });
